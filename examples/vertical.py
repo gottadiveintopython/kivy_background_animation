@@ -1,7 +1,7 @@
 from kivy.app import App
 from kivy.lang import Builder
 
-from kivy_background_animation.predefined import vertical
+from kivy_background_animation import vertical
 
 KV_CODE = '''
 #:import random random.random
