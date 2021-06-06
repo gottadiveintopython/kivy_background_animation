@@ -7,3 +7,4 @@ bin/
 /temp
 /Pipfile.lock
 *.egg-info
+/poetry.lock
