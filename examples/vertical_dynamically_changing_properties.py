@@ -38,15 +38,14 @@ KV_CODE = '''
     outline_color: 0, 0, 0, 1
 
 FloatLayout:
-    BASpace:
-        BAVertical:
-            id: anim
-            sprite_size: sprite_size.value
-            max_sprites: max_sprites.value
-            texture: texture if use_texture.active else None
-            color: (*color.color[:3], opacity.value, )
-            func_spawning_interval: lambda: uniform(spwn_min.value, spwn_max.value)
-            func_velocity: lambda: uniform(velocity_min.value, velocity_max.value)
+    BAVertical:
+        id: anim
+        sprite_size: sprite_size.value
+        max_sprites: max_sprites.value
+        texture: texture if use_texture.active else None
+        color: (*color.color[:3], opacity.value, )
+        func_spawning_interval: lambda: uniform(spwn_min.value, spwn_max.value)
+        func_velocity: lambda: uniform(velocity_min.value, velocity_max.value)
     BoxLayout:
         BoxLayout:
             orientation: 'vertical'

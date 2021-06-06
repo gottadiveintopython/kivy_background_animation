@@ -2,6 +2,7 @@ __all__ = ('BAVertical', )
 
 from array import array
 import random as random_module
+from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.graphics import Point, Color
 from kivy.core.image import Image as CoreImage
@@ -11,10 +12,19 @@ from kivy.properties import (
 from kivy.uix.widget import Widget
 import asynckivy
 
-from kivy_background_animation import BAInstance
+
+Builder.load_string(r'''
+<BAVertical>:
+    canvas.before:
+        PushMatrix
+        Translate:
+            xy: self.pos
+    canvas.after:
+        PopMatrix
+''')
 
 
-class BAVertical(BAInstance):
+class BAVertical(Widget):
     '''spriteが上端/下端から現れ下端/上端に向かって流れていくanimation
     '''
 
@@ -60,7 +70,7 @@ class BAVertical(BAInstance):
         super().__init__(**kwargs)
         fbind = self.fbind
         trigger_restart = self.trigger_restart
-        for name in ('fake_parent', 'max_sprites', ):
+        for name in ('parent', 'max_sprites', ):
             fbind(name, trigger_restart)
         for name in (
                 'random', 'texture', 'source', 'color', 'sprite_size',
@@ -75,7 +85,7 @@ class BAVertical(BAInstance):
         if self._root_coro is not None:
             self._root_coro.close()
             self._root_coro = None
-        if self.fake_parent is None:
+        if self.parent is None:
             return
         self._root_coro = asynckivy.start(self._async_main())
 
@@ -97,9 +107,8 @@ class BAVertical(BAInstance):
 
         # setup graphics instructions
         ctx = self._ctx
-        widget = self.fake_parent
         if needs_to_restart:
-            with widget.canvas:
+            with self.canvas:
                 color_inst = Color()
                 point_inst = Point()
         else:
@@ -123,7 +132,7 @@ class BAVertical(BAInstance):
         random = self.random or random_module
         ctx.update(
             random=random,
-            widget=widget,
+            widget=self,
             point_size=point_size,
             color_inst=color_inst,
             point_inst=point_inst,
@@ -147,8 +156,8 @@ class BAVertical(BAInstance):
             coro_move.close()
             if self._needs_to_restart:
                 ctx.clear()
-                widget.canvas.remove(point_inst)
-                widget.canvas.remove(color_inst)
+                self.canvas.remove(point_inst)
+                self.canvas.remove(color_inst)
 
 
 async def _spawn_sprite(ctx:dict):

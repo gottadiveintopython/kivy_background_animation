@@ -8,12 +8,11 @@ KV_CODE = '''
 #:import T kivy.animation.AnimationTransition
 
 FloatLayout:
-    BASpace:
-        BAVertical:
-            max_sprites: 400
-            color: "#668811"
-            func_x: lambda: T.out_expo(random())
-            func_spawning_interval: lambda: 0
+    BAVertical:
+        max_sprites: 400
+        color: "#668811"
+        func_x: lambda: T.out_expo(random())
+        func_spawning_interval: lambda: 0
     Label:
         text: 'BAVertical'
         font_size: 100
