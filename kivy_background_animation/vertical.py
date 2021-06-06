@@ -61,8 +61,9 @@ class BAVertical(Widget):
     func_x = ObjectProperty()
     '''一つspriteが作られる毎に呼ばれ、戻り値がspriteのx座標(0から1の範囲)となる。'''
 
+    _main_task = asynckivy.sleep_forever()
+
     def __init__(self, **kwargs):
-        self._root_coro = None
         self._needs_to_restart = True
         self._ctx = {}
         self._trigger_update = trigger_update = \
@@ -82,12 +83,10 @@ class BAVertical(Widget):
         self._trigger_update()
 
     def _update(self, *args, **kwargs):
-        if self._root_coro is not None:
-            self._root_coro.close()
-            self._root_coro = None
+        self._main_task.close()
         if self.parent is None:
             return
-        self._root_coro = asynckivy.start(self._async_main())
+        self._main_task = asynckivy.start(self._async_main())
 
     async def _async_main(self):
         needs_to_restart = self._needs_to_restart
@@ -146,14 +145,12 @@ class BAVertical(Widget):
         # start animation
         try:
             self._needs_to_restart = False
-            coro_spawn = asynckivy.start(_spawn_sprite(ctx))
-            coro_remove = asynckivy.start(_remove_sprite_if_its_outside_of_the_space(ctx))
-            coro_move = asynckivy.start(_move_sprites(ctx))
-            await asynckivy.sleep_forever()
+            await asynckivy.and_(
+                _spawn_sprite(ctx),
+                _remove_sprite_if_its_outside_of_the_space(ctx),
+                _move_sprites(ctx),
+            )
         finally:
-            coro_spawn.close()
-            coro_remove.close()
-            coro_move.close()
             if self._needs_to_restart:
                 ctx.clear()
                 self.canvas.remove(point_inst)
