@@ -190,7 +190,7 @@ async def _spawn_sprite(ctx:dict):
 
 
 async def _remove_sprite_if_its_outside_of_the_space(ctx:dict):
-    from asynckivy import create_sleep
+    from asynckivy import repeat_sleeping
     from itertools import compress, count
 
     # unpack 'ctx' to improve performance
@@ -200,23 +200,23 @@ async def _remove_sprite_if_its_outside_of_the_space(ctx:dict):
     x_arr = ctx['x_arr']
     y_arr = ctx['y_arr']
 
-    sleep = await create_sleep(2)
-    min_y = min_x = -point_size
-    while True:
-        await sleep()
-        max_y = widget.height + point_size
-        max_x = widget.width + point_size
-        for i in compress(count(), visible_arr):
-            if (min_y <= y_arr[i] <= max_y) and (min_x <= x_arr[i] <= max_x):
-                pass
-            else:
-                visible_arr[i] = 0
+    async with repeat_sleeping(2.) as sleep:
+        min_y = min_x = -point_size
+        while True:
+            await sleep()
+            max_y = widget.height + point_size
+            max_x = widget.width + point_size
+            for i in compress(count(), visible_arr):
+                if (min_y <= y_arr[i] <= max_y) and (min_x <= x_arr[i] <= max_x):
+                    pass
+                else:
+                    visible_arr[i] = 0
 
 
 async def _move_sprites(ctx:dict):
     from time import perf_counter as get_current_time
     from itertools import compress, count, chain
-    from asynckivy import create_sleep
+    from asynckivy import repeat_sleeping
 
     # unpack 'ctx' to improve performance
     point_inst = ctx['point_inst']
@@ -226,15 +226,15 @@ async def _move_sprites(ctx:dict):
     y_arr = ctx['y_arr']
 
     chain_from_iterable = chain.from_iterable
-    sleep = await create_sleep(0)
     last = get_current_time()
-    while True:
-        await sleep()
-        current = get_current_time()
-        delta = current - last
-        last = current
-        for i in compress(count(), visible_arr):
-            y_arr[i] += velocity_y_arr[i] * delta
-        # 描画命令を更新
-        point_inst.points = tuple(chain_from_iterable(
-            compress(zip(x_arr, y_arr), visible_arr)))
+    async with repeat_sleeping(0) as sleep:
+        while True:
+            await sleep()
+            current = get_current_time()
+            delta = current - last
+            last = current
+            for i in compress(count(), visible_arr):
+                y_arr[i] += velocity_y_arr[i] * delta
+            # 描画命令を更新
+            point_inst.points = tuple(chain_from_iterable(
+                compress(zip(x_arr, y_arr), visible_arr)))

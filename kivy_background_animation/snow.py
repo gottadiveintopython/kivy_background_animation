@@ -222,7 +222,7 @@ async def _spawn_sprite(ctx:dict):
 
 
 async def _remove_sprite_if_its_outside_of_the_space(ctx:dict):
-    from asynckivy import create_sleep
+    from asynckivy import repeat_sleeping
     from itertools import compress, count
 
     # unpack 'ctx' to improve performance
@@ -235,23 +235,23 @@ async def _remove_sprite_if_its_outside_of_the_space(ctx:dict):
     grace_y = ctx['point_size']
     min_x = -grace_x
     min_y = -grace_y
-    sleep = await create_sleep(2)
-    while True:
-        await sleep()
-        max_x = widget.width + grace_x
-        max_y = widget.height + grace_y
-        for i in compress(count(), visible_arr):
-            if (min_y <= y_arr[i] <= max_y) and (min_x <= x_arr[i] <= max_x):
-                pass
-            else:
-                visible_arr[i] = 0
+    async with repeat_sleeping(2) as sleep:
+        while True:
+            await sleep()
+            max_x = widget.width + grace_x
+            max_y = widget.height + grace_y
+            for i in compress(count(), visible_arr):
+                if (min_y <= y_arr[i] <= max_y) and (min_x <= x_arr[i] <= max_x):
+                    pass
+                else:
+                    visible_arr[i] = 0
 
 
 async def _move_sprites(ctx:dict):
     from math import cos
     from time import perf_counter as get_current_time
     from itertools import compress, count, chain
-    from asynckivy import create_sleep
+    from asynckivy import repeat_sleeping
 
     # unpack 'ctx' to improve performance
     point_inst = ctx['point_inst']
@@ -264,18 +264,18 @@ async def _move_sprites(ctx:dict):
     radian_arr = ctx['radian_arr']
 
     chain_from_iterable = chain.from_iterable
-    sleep = await create_sleep(0)
     last = get_current_time()
-    while True:
-        await sleep()
-        current = get_current_time()
-        delta = current - last
-        last = current
-        for i in compress(count(), visible_arr):
-            y_arr[i] += velocity_y_arr[i] * delta
-            radian = radian_arr[i] + delta * 0.2
-            radian_arr[i] = radian
-            x_arr[i] = base_x_arr[i] + amplitude_arr[i] * cos(radian)
-        # 描画命令を更新
-        point_inst.points = tuple(chain_from_iterable(
-            compress(zip(x_arr, y_arr), visible_arr)))
+    async with repeat_sleeping(0) as sleep:
+        while True:
+            await sleep()
+            current = get_current_time()
+            delta = current - last
+            last = current
+            for i in compress(count(), visible_arr):
+                y_arr[i] += velocity_y_arr[i] * delta
+                radian = radian_arr[i] + delta * 0.2
+                radian_arr[i] = radian
+                x_arr[i] = base_x_arr[i] + amplitude_arr[i] * cos(radian)
+            # 描画命令を更新
+            point_inst.points = tuple(chain_from_iterable(
+                compress(zip(x_arr, y_arr), visible_arr)))
